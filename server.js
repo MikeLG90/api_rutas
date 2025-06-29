@@ -114,7 +114,7 @@ app.post('/api/ruta/:rutaId/vehiculo-cercano', async (req, res) => {
         FROM rutas_up.ubicaciones
         ORDER BY vehiculo_id, timestamp DESC
       ) u ON v.vehiculo_id = u.vehiculo_id
-      WHERE v.ruta_id = $1
+      WHERE u.ruta_id = $1
     `, [rutaId]);
 
     if (rows.length === 0) {
