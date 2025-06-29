@@ -95,6 +95,8 @@ const haversine = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
+const velocidadPromedio = 30 * 1000 / 3600; // 30 km/h en metros/segundo (~8.33 m/s)
+
 app.post('/api/ruta/:rutaId/vehiculo-cercano', async (req, res) => {
   const rutaId = req.params.rutaId;
   const { lat, lng } = req.body;
@@ -112,7 +114,7 @@ app.post('/api/ruta/:rutaId/vehiculo-cercano', async (req, res) => {
         FROM rutas_up.ubicaciones
         ORDER BY vehiculo_id, timestamp DESC
       ) u ON v.vehiculo_id = u.vehiculo_id
-      WHERE u.ruta_id = $1
+      WHERE v.ruta_id = $1
     `, [rutaId]);
 
     if (rows.length === 0) {
@@ -126,7 +128,12 @@ app.post('/api/ruta/:rutaId/vehiculo-cercano', async (req, res) => {
       const distancia = haversine(lat, lng, row.latitud, row.longitud);
       if (distancia < distanciaMin) {
         distanciaMin = distancia;
-        masCercano = { ...row, distancia_metros: distancia };
+        const tiempoSegundos = distancia / velocidadPromedio;
+        masCercano = { 
+          ...row, 
+          distancia_metros: distancia,
+          tiempo_estimado_segundos: tiempoSegundos
+        };
       }
     }
 
